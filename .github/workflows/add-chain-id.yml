@@ -1,5 +1,11 @@
 name: Add Chain ID
 
+# Whitelist: Only allow this workflow to run from the specified repositories
+# Format: owner/repo-name (e.g., safe-global/safe-deployments)
+# Multiple repositories can be added, separated by spaces
+env:
+  ALLOWED_REPOSITORIES: 'safe-global/safe-deployments Fbartoli/safe-deployments Fbartoli/Safe-deployments-scripts'
+
 on:
   workflow_dispatch:
     inputs:
@@ -33,6 +39,21 @@ jobs:
       pull-requests: write
     
     steps:
+      - name: Verify repository whitelist
+        run: |
+          ALLOWED_REPOS="${{ env.ALLOWED_REPOSITORIES }}"
+          CURRENT_REPO="${{ github.repository }}"
+          
+          # Check if current repository is in the whitelist
+          if echo "$ALLOWED_REPOS" | grep -qw "$CURRENT_REPO"; then
+            echo "✅ Repository verified: $CURRENT_REPO"
+          else
+            echo "❌ Error: This workflow can only be run from whitelisted repositories:"
+            echo "$ALLOWED_REPOS" | tr ' ' '\n' | sed 's/^/  - /'
+            echo ""
+            echo "Current repository: $CURRENT_REPO"
+            exit 1
+          fi
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
