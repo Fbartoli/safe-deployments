@@ -3,8 +3,10 @@ name: Add Chain ID
 # Whitelist: Only allow this workflow to run from the specified repositories
 # Format: owner/repo-name (e.g., safe-global/safe-deployments)
 # Multiple repositories can be added, separated by spaces
+# Users: Users who can trigger this workflow from any repository
 env:
   ALLOWED_REPOSITORIES: 'safe-global/safe-deployments Fbartoli/safe-deployments Fbartoli/Safe-deployments-scripts'
+  ALLOWED_USERS: 'Fbartoli'
 
 on:
   workflow_dispatch:
@@ -39,18 +41,27 @@ jobs:
       pull-requests: write
     
     steps:
-      - name: Verify repository whitelist
+      - name: Verify repository and user whitelist
         run: |
           ALLOWED_REPOS="${{ env.ALLOWED_REPOSITORIES }}"
+          ALLOWED_USERS="${{ env.ALLOWED_USERS }}"
           CURRENT_REPO="${{ github.repository }}"
+          CURRENT_USER="${{ github.actor }}"
           
-          # Check if current repository is in the whitelist
-          if echo "$ALLOWED_REPOS" | grep -qw "$CURRENT_REPO"; then
+          # Check if user is in the whitelist (allows triggering from any repo)
+          if echo "$ALLOWED_USERS" | grep -qw "$CURRENT_USER"; then
+            echo "✅ User verified: $CURRENT_USER (can trigger from any repository)"
+          # Check if repository is in the whitelist
+          elif echo "$ALLOWED_REPOS" | grep -qw "$CURRENT_REPO"; then
             echo "✅ Repository verified: $CURRENT_REPO"
           else
-            echo "❌ Error: This workflow can only be run from whitelisted repositories:"
-            echo "$ALLOWED_REPOS" | tr ' ' '\n' | sed 's/^/  - /'
+            echo "❌ Error: This workflow can only be run by:"
+            echo "  - Whitelisted users:"
+            echo "$ALLOWED_USERS" | tr ' ' '\n' | sed 's/^/    - /'
+            echo "  - Or from whitelisted repositories:"
+            echo "$ALLOWED_REPOS" | tr ' ' '\n' | sed 's/^/    - /'
             echo ""
+            echo "Current user: $CURRENT_USER"
             echo "Current repository: $CURRENT_REPO"
             exit 1
           fi
