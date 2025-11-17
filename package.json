@@ -20,6 +20,7 @@
     "lint:fix:json": "prettier -w src/assets/*/*.json",
     "review:verify-deployment": "ts-node scripts/review/verifyDeployment.ts",
     "review:diff": "ts-node scripts/review/diff.ts",
+    "add-chain-id": "ts-node scripts/add-chain-id.ts",
     "prepack": "npm run build",
     "test": "jest"
   },
